@@ -60,6 +60,11 @@ public class Player_Move : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        PlayerTurn();
+    }
+
+    public void PlayerTurn()
+    {
         ++_intervalCnt;
 
         switch (_status)
@@ -96,7 +101,7 @@ public class Player_Move : MonoBehaviour
             transform.Translate(transform.up);
             _sprite.sprite = Up;
 
-            _dir    = Dir.UP;
+            _dir = Dir.UP;
             _status = Status.Move;
             _intervalCnt = 0;
 
@@ -107,7 +112,7 @@ public class Player_Move : MonoBehaviour
             transform.Translate(-transform.up);
             _sprite.sprite = Down;
 
-            _dir    = Dir.DOWN;
+            _dir = Dir.DOWN;
             _status = Status.Move;
             _intervalCnt = 0;
 
@@ -118,7 +123,7 @@ public class Player_Move : MonoBehaviour
             transform.Translate(-transform.right);
             _sprite.sprite = Left;
 
-            _dir    = Dir.LEFT;
+            _dir = Dir.LEFT;
             _status = Status.Move;
             _intervalCnt = 0;
 
@@ -129,14 +134,14 @@ public class Player_Move : MonoBehaviour
             transform.Translate(transform.right);
             _sprite.sprite = Right;
 
-            _dir    = Dir.RIGHT;
+            _dir = Dir.RIGHT;
             _status = Status.Move;
             _intervalCnt = 0;
 
             return;
         }
 
-        if(Input.GetKeyDown(KeyCode.X))
+        if (Input.GetKeyDown(KeyCode.X))
         {
             _attack_obj = Instantiate(_attack_prefab);
 
@@ -145,7 +150,7 @@ public class Player_Move : MonoBehaviour
 
             var pos = transform.position;
 
-            switch(_dir)
+            switch (_dir)
             {
                 case Dir.UP:
                     pos.y += 0.5f;
