@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class MapCreate : MonoBehaviour
 {
+    const int Line = 40;    // 行数
+    const int Row = 50;     // 列数
+
     struct Room
     {
         public Vector2Int UpperLeft;   // 部屋の左上座標
@@ -13,26 +16,31 @@ public class MapCreate : MonoBehaviour
     }
 
     List<Room> _Rooms;
-    int[] _Tiles;
+    int[,] _Tiles;
 
     public GameObject _floor;
     public GameObject _wall;
+    public GameObject _number;
     
     // Start is called before the first frame update
     void Start()
     {
         _Rooms = new List<Room>();
-        _Tiles = new int[2500];
+        _Tiles = new int[Line, Row];
         // 初期化
-        for (int i = 0; i < _Tiles.Length; ++i)
+        for (int i = 0; i < _Tiles.GetLength(0); ++i)
         {
-            _Tiles[i] = 0;
+            for (int j = 0; j < _Tiles.GetLength(1); ++j)
+            {
+                _Tiles[i,j] = 0;
+            }
         }
     }
 
     // Update is called once per frame
     void Update()
     {
+        // Map更新
         if(Input.GetKeyDown(KeyCode.M))
         {
             Create();
@@ -42,49 +50,67 @@ public class MapCreate : MonoBehaviour
             // すべての子オブジェクトを取得
             foreach (Transform n in this.transform)
             {
+                // 削除
                 GameObject.Destroy(n.gameObject);
             }
-            for (int i = 0; i < _Tiles.Length; ++i)
+            // タイルの設置
+            for (int i = 0; i < _Tiles.GetLength(0); ++i)
             {
-                var x = i / 50;
-                var y = -i % 50;
-                Vector3 pos = new Vector3(x, y);
+                for (int j = 0; j < _Tiles.GetLength(1); ++j)
+                {
+                    Vector3 pos = new Vector3(j, -i);
 
-                var origin = _Tiles[i] != 0 ? _floor : _wall;
-                var tile = Instantiate(origin, this.transform);
-                tile.transform.position = pos;
+                    var origin = _Tiles[i,j] != 0 ? _floor : _wall;
+                    var tile = Instantiate(origin, this.transform);
+                    tile.transform.position = pos;
+                }
             }
-            Debug.Log(_Tiles.Length);
+            for (int i = 0; i < _Rooms.Count; ++i) 
+            {
+                var number = Instantiate(_number, this.transform);
+                number.GetComponent<TextMesh>().text = i.ToString();
+                Vector3 pos = new Vector3(_Rooms[i].Center.x, -_Rooms[i].Center.y);
+                number.transform.position = pos;
+            }
         }
     }
 
     void Create()
     {
         // 初期化
-        for (int i = 0; i < _Tiles.Length; ++i)
+        for (int i = 0; i < _Tiles.GetLength(0); ++i)
         {
-            _Tiles[i] = 0;
+            for (int j = 0; j < _Tiles.GetLength(1); ++j)
+            {
+                _Tiles[i, j] = 0;
+            }
         }
         _Rooms.Clear();
 
-        for (int i = 0; i < 12; ++i)
+        for (int i = 0; i < 20; ++i)
         {
-            var r = new Room();
-            r.UpperLeft.x   = Random.Range(0, 50);
-            r.UpperLeft.y   = Random.Range(0, 50);
-            r.Hight         = Random.Range(1, 20);
-            r.Width         = Random.Range(1, 20);
+            // 部屋をランダム生成
+            var room = new Room();
+            room.UpperLeft.x   = Random.Range(1, Row);
+            room.UpperLeft.y   = Random.Range(1, Line);
+            room.Hight         = Random.Range(6, 16);
+            room.Width         = Random.Range(6, 16);
+            room.Center         = new Vector2Int(room.UpperLeft.x + room.Width / 2, room.UpperLeft.y + room.Hight / 2);
 
-            if (r.UpperLeft.x + r.Width > 50) continue;
-            if (r.UpperLeft.y + r.Hight > 50) continue;
+            if (room.UpperLeft.x + room.Width > Row)  continue;
+            if (room.UpperLeft.y + room.Hight > Line) continue;
+
+            var l_min = Mathf.Max(room.UpperLeft.y - 3, 0);
+            var r_min = Mathf.Max(room.UpperLeft.x - 3, 0);
+            var l_max = Mathf.Min(room.UpperLeft.y + room.Hight + 3, Line - 1);
+            var r_max = Mathf.Min(room.UpperLeft.x + room.Width + 3, Row - 1);
 
             bool flag = false;
-            for (int h = 0; h < r.Hight; ++h)
+            for (int l = l_min; l < l_max; ++l)
             {
-                for (int w = 0; w < r.Width; ++w)
+                for (int r = r_min; r < r_max; ++r)
                 {
-                    var id = r.UpperLeft.x * r.UpperLeft.y + w + h * 50;
-                    if (_Tiles[id] != 0)
+                    if (_Tiles[l,r] != 0)
                     {
                         flag = true;
                         break;
@@ -93,18 +119,51 @@ public class MapCreate : MonoBehaviour
             }
             if (flag) continue;
 
-            for (int h = 0; h < r.Hight; ++h)
+            for (int y = room.UpperLeft.y; y < room.UpperLeft.y + room.Hight; ++y)
             {
-                for (int w = 0; w < r.Width; ++w)
+                for (int x = room.UpperLeft.x; x < room.UpperLeft.x + room.Width; ++x)
                 {
-                    var id = r.UpperLeft.x * r.UpperLeft.y + w + h * 50;
-                    _Tiles[id] = 1;
+                    _Tiles[y,x] = 1;
                 }
             }
-
-            _Rooms.Add(r);
+            _Rooms.Add(room);
         }
-
         Debug.Log(_Rooms.Count);
+
+        for (int i = 0; i < _Rooms.Count; ++i)
+        {
+            int room_num = i;               // 最寄りの部屋番号
+            float dis_min = float.MaxValue; // 最寄りの部屋との距離
+
+            for (int j = 0; j < _Rooms.Count; ++j)
+            {
+                // 同じ部屋は飛ばす
+                if (i == j) continue;
+                // 部屋同士の距離
+                var d = Vector2Int.Distance(_Rooms[i].Center, _Rooms[j].Center);
+                // 最寄りの距離更新
+                if(dis_min > d)
+                {
+                    dis_min = d;
+                    room_num = j;
+                }
+            }
+            var str = ("%d & %d", i, room_num);
+            Debug.Log(str);
+
+            var dis_y = _Rooms[room_num].Center.y - _Rooms[i].Center.y;
+            var dis_x = _Rooms[room_num].Center.x - _Rooms[i].Center.x;
+
+            for (int x = 0; x < Mathf.Abs(dis_x); ++x)
+            {
+                var r = _Rooms[i].Center.x + (x + 1) * (dis_x / Mathf.Abs(dis_x));
+                _Tiles[_Rooms[i].Center.y, r] = 1;
+            }
+            for (int y = 0; y < Mathf.Abs(dis_y); ++y)
+            {
+                var l = _Rooms[room_num].Center.y - (y + 1) * (dis_y / Mathf.Abs(dis_y));
+                _Tiles[l, _Rooms[room_num].Center.x] = 1;
+            }
+        }
     }
 }
