@@ -17,6 +17,7 @@ public class MapCreate : MonoBehaviour
 
     List<Room> _Rooms;
     int[,] _Tiles;
+    int[,] _Charactor;
 
     public GameObject _floor;
     public GameObject _wall;
