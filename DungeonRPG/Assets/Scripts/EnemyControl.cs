@@ -6,26 +6,28 @@ public class EnemyControl : CharacterControl
 {
     const int EFFECT_MAX = 15;
 
-    public GameObject _player;
+    private GameObject _player;
 
-    public  GameObject  _hitEffect_prefab; // 攻撃の軌跡のプレハブ
-    private GameObject  _hitEffect_obj;    // 攻撃の軌跡
-    private int _count;
+    [SerializeField]
+    GameObject  _hitEffect_prefab; // 攻撃の軌跡のプレハブ
+    GameObject  _hitEffect_obj;    // 攻撃の軌跡
+    private int _effectCount;
 
     // Start is called before the first frame update
     void Start()
     {
         _sprite = GetComponent<SpriteRenderer>();
+        _map = transform.parent.GetComponent<MapCreate>();
 
-        _count = 0;
+        _effectCount = 0;
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (_count > 0)
+        if (_effectCount > 0)
         {
-            --_count;
+            --_effectCount;
             return;
         }
         if (_hitEffect_obj != null)
@@ -52,7 +54,7 @@ public class EnemyControl : CharacterControl
 
         Vector3 dis = _player.transform.position - transform.position;
         var pos = transform.position;
-        _count = EFFECT_MAX;
+        _effectCount = EFFECT_MAX;
 
         if (dis.x != 0)
         {
@@ -85,5 +87,15 @@ public class EnemyControl : CharacterControl
 
             _sprite.sprite = (dis.y / dis_Y) < 0 ? Down : Up;
         }
+    }
+
+    public void SetPos(int x, int y)
+    {
+        _pos = new Vector2Int(x, y);
+    }
+
+    public void SetPlayer(GameObject pl)
+    {
+        _player = pl;
     }
 }

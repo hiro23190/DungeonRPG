@@ -5,7 +5,7 @@ using UnityEngine;
 public class CharacterControl : MonoBehaviour
 {
     // キャラの向き
-    public enum Dir
+    protected enum Dir
     {
         UP,
         DOWN,
@@ -15,7 +15,7 @@ public class CharacterControl : MonoBehaviour
     protected Dir _dir;
 
     // キャラの状態
-    public enum Status
+    protected enum Status
     {
         Wait,
         Move,
@@ -24,11 +24,16 @@ public class CharacterControl : MonoBehaviour
     }
     protected Status _status;
 
-    public Sprite Up;
-    public Sprite Down;
-    public Sprite Left;
-    public Sprite Right;
+    protected MapCreate _map;
+    protected TurnControl _turn;
+
+    [SerializeField] protected Sprite Up;
+    [SerializeField] protected Sprite Down;
+    [SerializeField] protected Sprite Left;
+    [SerializeField] protected Sprite Right;
     protected SpriteRenderer _sprite;
+
+    protected Vector2Int _pos;
 
     // Start is called before the first frame update
     void Start()

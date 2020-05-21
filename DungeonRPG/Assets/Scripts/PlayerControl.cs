@@ -7,11 +7,13 @@ public class PlayerControl : CharacterControl
     const int LIFE_MAX  = 3;
     const int COUTN_MAX = 15;
 
-    public  GameObject  _attack_prefab; // 攻撃の軌跡のプレハブ
-    private GameObject  _attack_obj;    // 攻撃の軌跡
+    [SerializeField]
+    GameObject  _attack_prefab; // 攻撃の軌跡のプレハブ
+    GameObject  _attack_obj;    // 攻撃の軌跡
 
-    public  GameObject      _skill_prefab; // 特技の軌跡のプレハブ
-    private GameObject[]    _skill_obj;    // 特技の軌跡
+    [SerializeField]
+    GameObject      _skill_prefab; // 特技の軌跡のプレハブ
+    GameObject[]    _skill_obj;    // 特技の軌跡
 
     private int _life = 2;
 
@@ -21,13 +23,18 @@ public class PlayerControl : CharacterControl
     void Start()
     {
         _sprite = GetComponent<SpriteRenderer>();
+        _map    = transform.parent.GetComponent<MapCreate>();
+        _turn   = transform.parent.GetComponent<TurnControl>();
 
         _skill_obj = new GameObject[4];
 
         _status = Status.Wait;
         _dir    = Dir.DOWN;
+        _count  = COUTN_MAX;
 
-        _count = COUTN_MAX;
+        _pos = _map.GetStartPos();
+        var pos = new Vector3(_pos.x, -_pos.y);
+        transform.position = pos;
     }
 
     // Update is called once per frame
@@ -49,47 +56,87 @@ public class PlayerControl : CharacterControl
                 Destroy(_skill_obj[i]);
             }
         }
+
+        if(_turn.IsPlayerTurn())
+        {
+            if (PlayerTurn())
+            {
+                _turn.EndPlayerTurn();
+            }
+        }
     }
 
-    public bool PlayerTurn()
+    bool PlayerTurn()
     {
         if (Input.GetKey(KeyCode.UpArrow))
         {
-            transform.Translate(transform.up);
+            _dir = Dir.UP;
             _sprite.sprite = Up;
 
-            _dir = Dir.UP;
+            if (_pos.y - 1 < 0) return false;
+            if (_map._Tiles[_pos.y-1,_pos.x] == 0) return false;
+
             _status = Status.Move;
+
+            _map._Charactor[_pos.y, _pos.x] = 0;
+            _pos.y -= 1;
+            _map._Charactor[_pos.y, _pos.x] = 1;
+
+            transform.Translate(transform.up);
 
             return true;
         }
         if (Input.GetKey(KeyCode.DownArrow))
         {
-            transform.Translate(-transform.up);
+            _dir = Dir.DOWN;
             _sprite.sprite = Down;
 
-            _dir = Dir.DOWN;
+            if (_pos.y + 1 >= _map._Tiles.GetLength(0)) return false;
+            if (_map._Tiles[_pos.y + 1, _pos.x] == 0) return false;
+
             _status = Status.Move;
+
+            _map._Charactor[_pos.y, _pos.x] = 0;
+            _pos.y += 1;
+            _map._Charactor[_pos.y, _pos.x] = 1;
+
+            transform.Translate(-transform.up);
 
             return true;
         }
         if (Input.GetKey(KeyCode.LeftArrow))
         {
-            transform.Translate(-transform.right);
+            _dir = Dir.LEFT;
             _sprite.sprite = Left;
 
-            _dir = Dir.LEFT;
+            if (_pos.x - 1 < 0) return false;
+            if (_map._Tiles[_pos.y, _pos.x - 1] == 0) return false;
+
             _status = Status.Move;
+
+            _map._Charactor[_pos.y, _pos.x] = 0;
+            _pos.x -= 1;
+            _map._Charactor[_pos.y, _pos.x] = 1;
+
+            transform.Translate(-transform.right);
 
             return true;
         }
         if (Input.GetKey(KeyCode.RightArrow))
         {
-            transform.Translate(transform.right);
+            _dir = Dir.RIGHT;
             _sprite.sprite = Right;
 
-            _dir = Dir.RIGHT;
+            if (_pos.x + 1 >= _map._Tiles.GetLength(1)) return false;
+            if (_map._Tiles[_pos.y, _pos.x + 1] == 0) return false;
+
             _status = Status.Move;
+
+            _map._Charactor[_pos.y, _pos.x] = 0;
+            _pos.x += 1;
+            _map._Charactor[_pos.y, _pos.x] = 1;
+
+            transform.Translate(transform.right);
 
             return true;
         }

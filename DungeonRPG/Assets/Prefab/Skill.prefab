@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 7724880010296326974}
   - component: {fileID: 7724880010296326973}
   m_Layer: 0
-  m_Name: Attack (1)
+  m_Name: Skill
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -69,7 +69,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 5
   m_Sprite: {fileID: -6406094373527853780, guid: 46733c821311178438802828108d4bd8,
     type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}

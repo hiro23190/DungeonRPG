@@ -16,38 +16,31 @@ public class MapCreate : MonoBehaviour
     }
 
     List<Room> _Rooms;
-    int[,] _Tiles;
-    int[,] _Charactor;
+    public int[,] _Tiles;
+    public int[,] _Charactor;
 
-    public GameObject _floor;
-    public GameObject _wall;
-    public GameObject _number;
-    
+    [SerializeField] GameObject _tiles;
+    [SerializeField] GameObject _number;
+    [SerializeField] GameObject _player;
+    [SerializeField] GameObject _spawner;
+
     // Start is called before the first frame update
     void Start()
     {
         _Rooms = new List<Room>();
-        _Tiles = new int[Line, Row];
-        // 初期化
-        for (int i = 0; i < _Tiles.GetLength(0); ++i)
-        {
-            for (int j = 0; j < _Tiles.GetLength(1); ++j)
-            {
-                _Tiles[i,j] = 0;
-            }
-        }
+        _Tiles      = new int[Line, Row];
+        _Charactor  = new int[Line, Row];
+
+        Init();
     }
 
     // Update is called once per frame
     void Update()
     {
-        // Map更新
-        if(Input.GetKeyDown(KeyCode.M))
+        if (Input.GetKeyDown(KeyCode.M))
         {
+            // mapの生成
             Create();
-        }
-        if (Input.GetKeyDown(KeyCode.N))
-        {
             // すべての子オブジェクトを取得
             foreach (Transform n in this.transform)
             {
@@ -55,17 +48,9 @@ public class MapCreate : MonoBehaviour
                 GameObject.Destroy(n.gameObject);
             }
             // タイルの設置
-            for (int i = 0; i < _Tiles.GetLength(0); ++i)
-            {
-                for (int j = 0; j < _Tiles.GetLength(1); ++j)
-                {
-                    Vector3 pos = new Vector3(j, -i);
+            Instantiate(_tiles, this.transform).GetComponent<TilesControl>().Set();
 
-                    var origin = _Tiles[i,j] != 0 ? _floor : _wall;
-                    var tile = Instantiate(origin, this.transform);
-                    tile.transform.position = pos;
-                }
-            }
+            // 部屋番号の表示
             for (int i = 0; i < _Rooms.Count; ++i) 
             {
                 var number = Instantiate(_number, this.transform);
@@ -73,24 +58,23 @@ public class MapCreate : MonoBehaviour
                 Vector3 pos = new Vector3(_Rooms[i].Center.x, -_Rooms[i].Center.y);
                 number.transform.position = pos;
             }
+
+            // player
+            var pl = Instantiate(_player, this.transform);
+            // spawner
+            var sp = Instantiate(_spawner, this.transform);
+            sp.GetComponent<EnemySpawn>().SetPlayer(pl);
         }
     }
 
     void Create()
     {
-        // 初期化
-        for (int i = 0; i < _Tiles.GetLength(0); ++i)
-        {
-            for (int j = 0; j < _Tiles.GetLength(1); ++j)
-            {
-                _Tiles[i, j] = 0;
-            }
-        }
+        Init();
         _Rooms.Clear();
 
+        // 部屋をランダム生成
         for (int i = 0; i < 20; ++i)
         {
-            // 部屋をランダム生成
             var room = new Room();
             room.UpperLeft.x   = Random.Range(1, Row);
             room.UpperLeft.y   = Random.Range(1, Line);
@@ -101,11 +85,13 @@ public class MapCreate : MonoBehaviour
             if (room.UpperLeft.x + room.Width > Row)  continue;
             if (room.UpperLeft.y + room.Hight > Line) continue;
 
+            // 部屋同士の間隔をあける
             var l_min = Mathf.Max(room.UpperLeft.y - 3, 0);
             var r_min = Mathf.Max(room.UpperLeft.x - 3, 0);
             var l_max = Mathf.Min(room.UpperLeft.y + room.Hight + 3, Line - 1);
             var r_max = Mathf.Min(room.UpperLeft.x + room.Width + 3, Row - 1);
 
+            // 生成可能かチェック
             bool flag = false;
             for (int l = l_min; l < l_max; ++l)
             {
@@ -120,6 +106,7 @@ public class MapCreate : MonoBehaviour
             }
             if (flag) continue;
 
+            // 部屋の設置
             for (int y = room.UpperLeft.y; y < room.UpperLeft.y + room.Hight; ++y)
             {
                 for (int x = room.UpperLeft.x; x < room.UpperLeft.x + room.Width; ++x)
@@ -131,6 +118,7 @@ public class MapCreate : MonoBehaviour
         }
         Debug.Log(_Rooms.Count);
 
+        // 通路の設定
         for (int i = 0; i < _Rooms.Count; ++i)
         {
             int room_num = i;               // 最寄りの部屋番号
@@ -166,5 +154,29 @@ public class MapCreate : MonoBehaviour
                 _Tiles[l, _Rooms[room_num].Center.x] = 1;
             }
         }
+
+        // キャラ用マップの生成
+        _Charactor[_Rooms[0].Center.y, _Rooms[0].Center.x] = 1;
+    }
+
+    void Init()
+    {
+        // 初期化
+        for (int i = 0; i < Line; ++i)
+        {
+            for (int j = 0; j < Row; ++j)
+            {
+                _Tiles[i, j] = 0;
+                _Charactor[i, j] = 0;
+            }
+        }
+    }
+
+    public Vector2Int GetStartPos()
+    {
+        var x = _Rooms[0].UpperLeft.x + Random.Range(0, _Rooms[0].Width);
+        var y = _Rooms[0].UpperLeft.y + Random.Range(0, _Rooms[0].Hight);
+
+        return new Vector2Int(x, y);
     }
 }
