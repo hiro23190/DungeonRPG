@@ -29,11 +29,11 @@ public class TurnControl : MonoBehaviour
     {
         if(_turn == Turn.Interval)
         {
-                --_interval;
-                if(_interval < 0)
-                {
-                    _turn = _next;
-                }
+            --_interval;
+            if(_interval < 0)
+            {
+                _turn = _next;
+            }
         }
     }
 

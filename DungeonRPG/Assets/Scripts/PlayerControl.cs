@@ -32,19 +32,42 @@ public class PlayerControl : CharacterControl
         _dir    = Dir.DOWN;
         _count  = COUTN_MAX;
 
-        _pos = _map.GetStartPos();
-        var pos = new Vector3(_pos.x, -_pos.y);
-        transform.position = pos;
+        // playerの初期位置設定
+        var room = _map._Rooms[0];
+        var w = Random.Range(0, room.Width);
+        var h = Random.Range(0, room.Hight);
+        _pos = new Vector2Int(room.UpperLeft.x + w, room.UpperLeft.y + h);
+        _map._Charactor[_pos.y, _pos.x] = 1;
+        transform.position = new Vector3(_pos.x, -_pos.y);
     }
 
     // Update is called once per frame
     void Update()
     {
+        if (_turn.IsPlayerTurn())
+        {
+            if (PlayerTurn())
+            {
+                _turn.EndPlayerTurn();
+            }
+        }
+        transform.position = new Vector3(_pos.x, -_pos.y);
+
         if (_count > 0)
         {
             --_count;
             return;
         }
+        EffectDestroy();
+    }
+
+    private void OnDestroy()
+    {
+        EffectDestroy();
+    }
+
+    void EffectDestroy()
+    {
         if (_attack_obj != null)
         {
             Destroy(_attack_obj);
@@ -56,18 +79,11 @@ public class PlayerControl : CharacterControl
                 Destroy(_skill_obj[i]);
             }
         }
-
-        if(_turn.IsPlayerTurn())
-        {
-            if (PlayerTurn())
-            {
-                _turn.EndPlayerTurn();
-            }
-        }
     }
 
     bool PlayerTurn()
     {
+        // 移動
         if (Input.GetKey(KeyCode.UpArrow))
         {
             _dir = Dir.UP;
@@ -81,8 +97,6 @@ public class PlayerControl : CharacterControl
             _map._Charactor[_pos.y, _pos.x] = 0;
             _pos.y -= 1;
             _map._Charactor[_pos.y, _pos.x] = 1;
-
-            transform.Translate(transform.up);
 
             return true;
         }
@@ -100,8 +114,6 @@ public class PlayerControl : CharacterControl
             _pos.y += 1;
             _map._Charactor[_pos.y, _pos.x] = 1;
 
-            transform.Translate(-transform.up);
-
             return true;
         }
         if (Input.GetKey(KeyCode.LeftArrow))
@@ -117,8 +129,6 @@ public class PlayerControl : CharacterControl
             _map._Charactor[_pos.y, _pos.x] = 0;
             _pos.x -= 1;
             _map._Charactor[_pos.y, _pos.x] = 1;
-
-            transform.Translate(-transform.right);
 
             return true;
         }
@@ -136,11 +146,10 @@ public class PlayerControl : CharacterControl
             _pos.x += 1;
             _map._Charactor[_pos.y, _pos.x] = 1;
 
-            transform.Translate(transform.right);
-
             return true;
         }
 
+        // 攻撃
         if (Input.GetKeyDown(KeyCode.X))
         {
             _attack_obj = Instantiate(_attack_prefab);
@@ -174,6 +183,7 @@ public class PlayerControl : CharacterControl
             return true;
         }
 
+        // 特技
         if (Input.GetKeyDown(KeyCode.Z))
         {
             _count = COUTN_MAX;
@@ -197,6 +207,7 @@ public class PlayerControl : CharacterControl
             return true;
         }
 
+        // アイテム
         if (Input.GetKeyDown(KeyCode.I))
         {
             if (_life < LIFE_MAX)

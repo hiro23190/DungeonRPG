@@ -7,7 +7,7 @@ public class MapCreate : MonoBehaviour
     const int Line = 40;    // 行数
     const int Row = 50;     // 列数
 
-    struct Room
+    public struct Room
     {
         public Vector2Int UpperLeft;   // 部屋の左上座標
         public Vector2Int Center;      // 部屋の中心座標
@@ -15,7 +15,7 @@ public class MapCreate : MonoBehaviour
         public int Width;              // 部屋の幅
     }
 
-    List<Room> _Rooms;
+    public List<Room> _Rooms;
     public int[,] _Tiles;
     public int[,] _Charactor;
 
@@ -49,7 +49,6 @@ public class MapCreate : MonoBehaviour
             }
             // タイルの設置
             Instantiate(_tiles, this.transform).GetComponent<TilesControl>().Set();
-
             // 部屋番号の表示
             for (int i = 0; i < _Rooms.Count; ++i) 
             {
@@ -58,7 +57,6 @@ public class MapCreate : MonoBehaviour
                 Vector3 pos = new Vector3(_Rooms[i].Center.x, -_Rooms[i].Center.y);
                 number.transform.position = pos;
             }
-
             // player
             var pl = Instantiate(_player, this.transform);
             // spawner
@@ -114,6 +112,8 @@ public class MapCreate : MonoBehaviour
                     _Tiles[y,x] = 1;
                 }
             }
+
+            // 部屋を登録
             _Rooms.Add(room);
         }
         Debug.Log(_Rooms.Count);
@@ -154,9 +154,6 @@ public class MapCreate : MonoBehaviour
                 _Tiles[l, _Rooms[room_num].Center.x] = 1;
             }
         }
-
-        // キャラ用マップの生成
-        _Charactor[_Rooms[0].Center.y, _Rooms[0].Center.x] = 1;
     }
 
     void Init()
@@ -170,13 +167,5 @@ public class MapCreate : MonoBehaviour
                 _Charactor[i, j] = 0;
             }
         }
-    }
-
-    public Vector2Int GetStartPos()
-    {
-        var x = _Rooms[0].UpperLeft.x + Random.Range(0, _Rooms[0].Width);
-        var y = _Rooms[0].UpperLeft.y + Random.Range(0, _Rooms[0].Hight);
-
-        return new Vector2Int(x, y);
     }
 }

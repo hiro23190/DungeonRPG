@@ -6,8 +6,6 @@ public class EnemyControl : CharacterControl
 {
     const int EFFECT_MAX = 15;
 
-    private GameObject _player;
-
     [SerializeField]
     GameObject  _hitEffect_prefab; // 攻撃の軌跡のプレハブ
     GameObject  _hitEffect_obj;    // 攻撃の軌跡
@@ -30,29 +28,39 @@ public class EnemyControl : CharacterControl
             --_effectCount;
             return;
         }
+        EffectDestroy();
+    }
+
+    private void OnDestroy()
+    {
+        EffectDestroy();
+    }
+
+    void EffectDestroy()
+    {
         if (_hitEffect_obj != null)
         {
             Destroy(_hitEffect_obj);
         }
     }
 
-    public void EnemyTurn()
+    public void EnemyTurn(Vector2Int pl)
     {
-        if (Vector3.Distance(_player.transform.position, transform.position) <= 1.0f)
+        if (Vector2Int.Distance(pl, _pos) > 1)
         {
-            Attack();
+            Move(pl);
         }
         else
         {
-            Move();
+            Attack(pl);
         }
     }
 
-    void Attack()
+    void Attack(Vector2Int pl)
     {
         _hitEffect_obj = Instantiate(_hitEffect_prefab);
 
-        Vector3 dis = _player.transform.position - transform.position;
+        var dis = pl - _pos;
         var pos = transform.position;
         _effectCount = EFFECT_MAX;
 
@@ -69,14 +77,65 @@ public class EnemyControl : CharacterControl
         _hitEffect_obj.transform.position = pos;
     }
 
-    void Move()
+    void Move(Vector2Int pl)
     {
-        Vector3 dis = _player.transform.position - transform.position;
-        float dis_X = Mathf.Abs(dis.x);
-        float dis_Y = Mathf.Abs(dis.y);
+        var dis     = pl - _pos;
+        var dis_X   = Mathf.Abs(dis.x);
+        var dis_Y   = Mathf.Abs(dis.y);
+
+        if (dis_X >= dis_Y)
+        {
+            _dir = Dir.RIGHT;
+            if (dis_X < 0) _dir = Dir.LEFT;
+        }
+        else
+        {
+            _dir = Dir.UP;
+            if (dis_Y > 0) _dir = Dir.DOWN; 
+        }
+
+        bool seach = false;
+        while (!seach)
+        {
+            switch (_dir)
+            {
+                case Dir.UP:
+                    break;
+                case Dir.DOWN:
+                    if (dis_X > dis_Y)
+                    {
+                        _dir = Dir.RIGHT;
+                        break;
+                    }
+                    break;
+                case Dir.LEFT:
+                    break;
+                case Dir.RIGHT:
+                    break;
+                default:
+                    break;
+            }
+        }
 
         if(dis_X >= dis_Y)
         {
+            if(dis.x > 0)
+            {
+                if (_pos.x + 1 >= _map._Tiles.GetLength(1)) return;
+                if (_map._Tiles[_pos.y, _pos.x + 1] == 0) return;
+
+                _map._Charactor[_pos.y, _pos.x] = 0;
+                _pos.x += 1;
+                _map._Charactor[_pos.y, _pos.x] = 2;
+
+                _dir = Dir.RIGHT;
+                _sprite.sprite = Right;
+            }
+            else
+            {
+                _pos.x -= 1;
+                _sprite.sprite = Left;
+            }
             transform.Translate(transform.right * (dis.x / dis_X));
 
             _sprite.sprite = (dis.x / dis_X) < 0 ? Left : Right;
@@ -92,10 +151,5 @@ public class EnemyControl : CharacterControl
     public void SetPos(int x, int y)
     {
         _pos = new Vector2Int(x, y);
-    }
-
-    public void SetPlayer(GameObject pl)
-    {
-        _player = pl;
     }
 }

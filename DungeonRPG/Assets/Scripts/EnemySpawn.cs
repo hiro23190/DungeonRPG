@@ -11,9 +11,9 @@ public class EnemySpawn : MonoBehaviour
 
     MapCreate _map;
     TurnControl _turn;
+    PlayerControl _player;
 
     List<GameObject> _enemys;
-    GameObject _player;
 
     int _spawnInterval;
 
@@ -43,7 +43,7 @@ public class EnemySpawn : MonoBehaviour
 
             foreach(GameObject ene in _enemys)
             {
-                ene.GetComponent<EnemyControl>().EnemyTurn();
+                ene.GetComponent<EnemyControl>().EnemyTurn(_player.GetPos());
             }
 
             _turn.EndEnemyTurn();
@@ -60,13 +60,23 @@ public class EnemySpawn : MonoBehaviour
             var enemy = Instantiate(_original, new Vector3(x, -y), new Quaternion(), this.transform.parent);
             _map._Charactor[y, x] = 2;
             enemy.GetComponent<EnemyControl>().SetPos(x, y);
-            enemy.GetComponent<EnemyControl>().SetPlayer(_player);
             _enemys.Add(enemy);
+        }
+        for (int i = 0; i < _map._Rooms.Count; ++i)
+        {
+            //_player.transform.position
+            //for (int h = 0; h < _map._Rooms[i].Hight; ++h) 
+            //{
+            //    for (int w = 0; w < _map._Rooms[i].Width; ++w)
+            //    {
+            //        _map._Charactor[,]
+            //    }
+            //}
         }
     }
 
     public void SetPlayer(GameObject pl)
     {
-        _player = pl;
+        _player = pl.GetComponent<PlayerControl>();
     }
 }

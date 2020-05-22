@@ -45,4 +45,9 @@ public class CharacterControl : MonoBehaviour
     {
         
     }
+
+    public Vector2Int GetPos()
+    {
+        return _pos;
+    }
 }
