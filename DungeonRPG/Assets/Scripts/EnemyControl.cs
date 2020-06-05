@@ -48,7 +48,14 @@ public class EnemyControl : CharacterControl
     {
         if (Vector2Int.Distance(pl, _pos) > 1)
         {
-            Move(pl);
+            if (Vector2Int.Distance(pl, _pos) < 7)
+            {
+                Chase(pl);
+            }
+            else
+            {
+                Wander(pl);
+            }
         }
         else
         {
@@ -77,75 +84,148 @@ public class EnemyControl : CharacterControl
         _hitEffect_obj.transform.position = pos;
     }
 
-    void Move(Vector2Int pl)
+    void Wander(Vector2Int pl)
     {
-        var dis     = pl - _pos;
-        var dis_X   = Mathf.Abs(dis.x);
-        var dis_Y   = Mathf.Abs(dis.y);
+        var check = false;
+        while (!check)
+        {
+            var d = Random.Range(0, 3);
 
-        if (dis_X >= dis_Y)
-        {
-            _dir = Dir.RIGHT;
-            if (dis_X < 0) _dir = Dir.LEFT;
-        }
-        else
-        {
-            _dir = Dir.UP;
-            if (dis_Y > 0) _dir = Dir.DOWN; 
-        }
-
-        bool seach = false;
-        while (!seach)
-        {
-            switch (_dir)
+            switch (d)
             {
-                case Dir.UP:
-                    break;
-                case Dir.DOWN:
-                    if (dis_X > dis_Y)
+                case 0:
+                    if (_map._Tiles[_pos.y - 1, _pos.x] == 1 &&
+                        _map._Charactor[_pos.y - 1, _pos.x] == 0)
                     {
-                        _dir = Dir.RIGHT;
-                        break;
+                        _dir = Dir.UP;
+                        check = true;
                     }
                     break;
-                case Dir.LEFT:
+                case 1:
+                    if (_map._Tiles[_pos.y + 1, _pos.x] == 1 &&
+                        _map._Charactor[_pos.y + 1, _pos.x] == 0)
+                    {
+                        _dir = Dir.DOWN;
+                        check = true;
+                    }
                     break;
-                case Dir.RIGHT:
+                case 2:
+                    if (_map._Tiles[_pos.y, _pos.x - 1] == 1 &&
+                        _map._Charactor[_pos.y, _pos.x - 1] == 0)
+                    {
+                        _dir = Dir.LEFT;
+                        check = true;
+                    }
+                    break;
+                case 3:
+                    if (_map._Tiles[_pos.y, _pos.x + 1] == 1 &&
+                        _map._Charactor[_pos.y, _pos.x + 1] == 0)
+                    {
+                        _dir = Dir.RIGHT;
+                        check = true;
+                    }
                     break;
                 default:
                     break;
             }
         }
 
-        if(dis_X >= dis_Y)
-        {
-            if(dis.x > 0)
-            {
-                if (_pos.x + 1 >= _map._Tiles.GetLength(1)) return;
-                if (_map._Tiles[_pos.y, _pos.x + 1] == 0) return;
+        Move();
+    }
 
+    void Chase(Vector2Int pl)
+    {
+        var up = int.MaxValue;
+        if (_map._Tiles[_pos.y - 1, _pos.x] == 1 &&
+            _map._Charactor[_pos.y - 1, _pos.x] == 0)
+        {
+            var x = Mathf.Abs(pl.x - _pos.x);
+            var y = Mathf.Abs(pl.y - (_pos.y - 1));
+
+            up = x + y;
+        }
+        var down = int.MaxValue;
+        if (_map._Tiles[_pos.y + 1, _pos.x] == 1 &&
+            _map._Charactor[_pos.y + 1, _pos.x] == 0)
+        {
+            var x = Mathf.Abs(pl.x - _pos.x);
+            var y = Mathf.Abs(pl.y - (_pos.y + 1));
+
+            down = x + y;
+        }
+        var left = int.MaxValue;
+        if (_map._Tiles[_pos.y, _pos.x - 1] == 1 &&
+            _map._Charactor[_pos.y, _pos.x - 1] == 0)
+        {
+            var x = Mathf.Abs(pl.x - (_pos.x - 1));
+            var y = Mathf.Abs(pl.y - _pos.y);
+
+            left = x + y;
+        }
+        var right = int.MaxValue;
+        if (_map._Tiles[_pos.y, _pos.x + 1] == 1 &&
+            _map._Charactor[_pos.y, _pos.x + 1] == 0)
+        {
+            var x = Mathf.Abs(pl.x - (_pos.x + 1));
+            var y = Mathf.Abs(pl.y - _pos.y);
+
+            right = x + y;
+        }
+
+        _dir = Dir.UP;
+        var min = up;
+        if (min > down)
+        {
+            _dir = Dir.DOWN;
+            min = down;
+        }
+        if (min > left)
+        {
+            _dir = Dir.LEFT;
+            min = left;
+        }
+        if (min > right)
+        {
+            _dir = Dir.RIGHT;
+            min = right;
+        }
+
+        Move();
+    }
+
+    void Move()
+    {
+        switch(_dir)
+        {
+            case Dir.UP:
+                _sprite.sprite = Up;
+                _map._Charactor[_pos.y, _pos.x] = 0;
+                _pos.y -= 1;
+                _map._Charactor[_pos.y, _pos.x] = 2;
+                break;
+            case Dir.DOWN:
+                _sprite.sprite = Down;
+                _map._Charactor[_pos.y, _pos.x] = 0;
+                _pos.y += 1;
+                _map._Charactor[_pos.y, _pos.x] = 2;
+                break;
+            case Dir.LEFT:
+                _sprite.sprite = Left;
+                _map._Charactor[_pos.y, _pos.x] = 0;
+                _pos.x -= 1;
+                _map._Charactor[_pos.y, _pos.x] = 2;
+                break;
+            case Dir.RIGHT:
+                _sprite.sprite = Right;
                 _map._Charactor[_pos.y, _pos.x] = 0;
                 _pos.x += 1;
                 _map._Charactor[_pos.y, _pos.x] = 2;
-
-                _dir = Dir.RIGHT;
-                _sprite.sprite = Right;
-            }
-            else
-            {
-                _pos.x -= 1;
-                _sprite.sprite = Left;
-            }
-            transform.Translate(transform.right * (dis.x / dis_X));
-
-            _sprite.sprite = (dis.x / dis_X) < 0 ? Left : Right;
+                break;
+            default:
+                break;
         }
-        else
-        {
-            transform.Translate(transform.up * (dis.y / dis_Y));
 
-            _sprite.sprite = (dis.y / dis_Y) < 0 ? Down : Up;
-        }
+        transform.position = new Vector3(_pos.x, -_pos.y);
     }
 
     public void SetPos(int x, int y)

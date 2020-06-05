@@ -38,7 +38,7 @@ public class EnemySpawn : MonoBehaviour
         {
             if(_enemys.Count < ENEMY_MAX)
             {
-                Spawn();
+                //Spawn();
             }
 
             foreach(GameObject ene in _enemys)
