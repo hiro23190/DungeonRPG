@@ -45,3 +45,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _floor: {fileID: 348561171171236535, guid: 3ac3d4ace35018448bc8bf09d68623c4, type: 3}
   _wall: {fileID: 3327007797125252364, guid: e052654145c779d4688aef606bc2b2c6, type: 3}
+  _ladder: {fileID: 1476247108855493545, guid: a5926aa39246a7343be8f7bea29bedb0, type: 3}

@@ -6,6 +6,7 @@ public class TilesControl : MonoBehaviour
 {
     [SerializeField] GameObject _floor;
     [SerializeField] GameObject _wall;
+    [SerializeField] GameObject _ladder;
 
     // Start is called before the first frame update
     void Start()
@@ -35,9 +36,21 @@ public class TilesControl : MonoBehaviour
             {
                 Vector3 pos = new Vector3(j, -i);
 
-                var origin = tiles[i, j] != 0 ? _floor : _wall;
-                var tile = Instantiate(origin, this.transform);
-                tile.transform.position = pos;
+                switch (tiles[i, j])
+                {
+                    case 0:
+                        Instantiate(_wall, pos, new Quaternion(), this.transform);
+                        break;
+                    case 1:
+                        Instantiate(_floor, pos, new Quaternion(), this.transform);
+                        break;
+                    case 2:
+                        Instantiate(_floor, pos, new Quaternion(), this.transform);
+                        Instantiate(_ladder, pos, new Quaternion(), this.transform);
+                        break;
+                    default:
+                        break;
+                }
             }
         }
     }

@@ -18,20 +18,31 @@ public class MapCreate : MonoBehaviour
     public List<Room> _Rooms;
     public int[,] _Tiles;
     public int[,] _Charactor;
+    public int[,] _Items;
 
     [SerializeField] GameObject _tiles;
     [SerializeField] GameObject _number;
+    [SerializeField] GameObject _items;
     [SerializeField] GameObject _player;
     [SerializeField] GameObject _spawner;
+
+    CameraControl   _cameraControl;
+    ItemsControl    _itemsControl;
+    EnemySpawn      _enemySpawn;
 
     // Start is called before the first frame update
     void Start()
     {
+        _cameraControl = Camera.main.GetComponent<CameraControl>();
+
         _Rooms = new List<Room>();
         _Tiles      = new int[Line, Row];
         _Charactor  = new int[Line, Row];
+        _Items      = new int[Line, Row];
 
         Init();
+
+        ReCreate();
     }
 
     // Update is called once per frame
@@ -39,30 +50,40 @@ public class MapCreate : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.M))
         {
-            // mapの生成
-            Create();
-            // すべての子オブジェクトを取得
-            foreach (Transform n in this.transform)
-            {
-                // 削除
-                GameObject.Destroy(n.gameObject);
-            }
-            // タイルの設置
-            Instantiate(_tiles, this.transform).GetComponent<TilesControl>().Set();
-            // 部屋番号の表示
-            for (int i = 0; i < _Rooms.Count; ++i) 
-            {
-                var number = Instantiate(_number, this.transform);
-                number.GetComponent<TextMesh>().text = i.ToString();
-                Vector3 pos = new Vector3(_Rooms[i].Center.x, -_Rooms[i].Center.y);
-                number.transform.position = pos;
-            }
-            // player
-            var pl = Instantiate(_player, this.transform);
-            // spawner
-            var sp = Instantiate(_spawner, this.transform);
-            sp.GetComponent<EnemySpawn>().SetPlayer(pl);
+            ReCreate();
         }
+    }
+
+    public void ReCreate()
+    {
+        // mapの生成
+        Create();
+        // すべての子オブジェクトを取得
+        foreach (Transform n in this.transform)
+        {
+            // 削除
+            GameObject.Destroy(n.gameObject);
+        }
+        // タイルの設置
+        Instantiate(_tiles, this.transform).GetComponent<TilesControl>().Set();
+        // 部屋番号の表示
+        for (int i = 0; i < _Rooms.Count; ++i)
+        {
+            var number = Instantiate(_number, this.transform);
+            number.GetComponent<TextMesh>().text = i.ToString();
+            Vector3 pos = new Vector3(_Rooms[i].Center.x, -_Rooms[i].Center.y);
+            number.transform.position = pos;
+        }
+        // アイテムの表示
+        _itemsControl = Instantiate(_items, this.transform).GetComponent<ItemsControl>();
+        _itemsControl.Set();
+        // player
+        var pl = Instantiate(_player, this.transform);
+        // spawner
+        _enemySpawn = Instantiate(_spawner, this.transform).GetComponent<EnemySpawn>();
+        _enemySpawn.SetPlayer(pl);
+        // カメラセット
+        _cameraControl.SetTarget(pl);
     }
 
     void Create()
@@ -118,6 +139,18 @@ public class MapCreate : MonoBehaviour
         }
         Debug.Log(_Rooms.Count);
 
+        // アイテムの設置
+        for (int i = 0; i < 20; ++i)
+        {
+            var x = Random.Range(1, Row);
+            var y = Random.Range(1, Line);
+            var n = Random.Range(1, 3);
+
+            if (_Tiles[y, x] != 1) continue;
+
+            _Items[y, x] = n;
+        }
+
         // 通路の設定
         for (int i = 0; i < _Rooms.Count; ++i)
         {
@@ -154,6 +187,12 @@ public class MapCreate : MonoBehaviour
                 _Tiles[l, _Rooms[room_num].Center.x] = 1;
             }
         }
+
+        // 階段の設置
+        var no = Random.Range(0, _Rooms.Count);
+        var w = Random.Range(1, _Rooms[no].Width);
+        var h = Random.Range(1, _Rooms[no].Hight);
+        _Tiles[_Rooms[no].UpperLeft.y + h, _Rooms[no].UpperLeft.x + w] = 2;
     }
 
     void Init()
@@ -165,7 +204,17 @@ public class MapCreate : MonoBehaviour
             {
                 _Tiles[i, j] = 0;
                 _Charactor[i, j] = 0;
+                _Items[i, j] = 0;
             }
         }
+    }
+
+    public void GetItem(Vector2Int pos)
+    {
+        _itemsControl.GetItem(pos);
+    }
+    public void AttackEnemy(Vector2Int pos)
+    {
+        _enemySpawn.Damage(pos);
     }
 }

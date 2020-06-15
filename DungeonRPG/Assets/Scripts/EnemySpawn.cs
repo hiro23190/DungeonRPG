@@ -75,6 +75,22 @@ public class EnemySpawn : MonoBehaviour
         }
     }
 
+    public void Damage(Vector2Int pos)
+    {
+        foreach (var e in _enemys)
+        {
+            if (e.transform.position.x == pos.x && e.transform.position.y == -pos.y)
+            {
+                _map._Charactor[pos.y, pos.x] = 0;
+
+                _enemys.Remove(e);
+                // 削除
+                GameObject.Destroy(e.gameObject);
+                break;
+            }
+        }
+    }
+
     public void SetPlayer(GameObject pl)
     {
         _player = pl.GetComponent<PlayerControl>();
